@@ -17,6 +17,8 @@
 , cachePath ? openwrtLib.getCachePath release
 # Extra OpenWRT package names (can be prefixed with "-")
 , packages ? []
+# Allow caller to clobber default and device packages
+, forcePackages ? false
 # Allows specifying additional packages that are not packaged by openwrt.
 # Note: unlike `packages`, this is not a list of names, it's an attrset of
 # package details. See `parsePackages` in `files.nix` for details on the
@@ -39,11 +41,12 @@ let
     inherit lib fetchurl callPackages2nix openwrtLib cache extraPackages;
   }) expandDeps corePackages packagesByFeed allPackages;
 
-  requiredPackages = cache.profiles.default_packages or (
-    builtins.attrNames packagesByFeed.base
-    ++ builtins.attrNames corePackages
-  ) ++ cache.profiles.profiles.${profile}.device_packages or []
-    ++ packages;
+  requiredPackages = (
+    if forcePackages then [] else cache.profiles.default_packages or (
+      builtins.attrNames packagesByFeed.base
+      ++ builtins.attrNames corePackages
+    ) ++ cache.profiles.profiles.${profile}.device_packages or []
+  ) ++ packages;
   allRequiredPackages = expandDeps allPackages requiredPackages;
 
   depsArgs = [

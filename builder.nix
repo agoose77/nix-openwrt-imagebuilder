@@ -42,11 +42,11 @@ let
   }) expandDeps corePackages packagesByFeed allPackages;
 
   requiredPackages = (
-    if forcePackages then [] else cache.profiles.default_packages or (
+    if forcePackages then [] else (cache.profiles.default_packages or (
       builtins.attrNames packagesByFeed.base
       ++ builtins.attrNames corePackages
     ) ++ cache.profiles.profiles.${profile}.device_packages or []
-  ) ++ packages;
+  )) ++ packages;
   allRequiredPackages = expandDeps allPackages requiredPackages;
 
   depsArgs = [
